@@ -2,7 +2,8 @@
 #include <ios>
 #include <sstream>
 int main(void) {
-  scanFile("program.txt");
+  // scanFile("program.txt");
+  scanFile("test1.txt");
   return 0;
 }
 
@@ -28,8 +29,8 @@ unordered_map<string, string> seperators_map = {
 unordered_map<string, string> comments_map = {{"/*", "O_COMM"},
                                               {"*/", "C_COMM"}};
 
-const regex id("[a-zA-Z][a-zA-Z]*");
-const regex num("[0-9][0-9]*");
+const regex id("\\s*[a-zA-Z][a-zA-Z]*");
+const regex num("\\s*[0-9][0-9]*");
 const regex keywords("int|return|while|else|if|void");
 const regex operators("\\|=|==|<|>|<=|>=|\\*|\\+|-|\\/|=");
 const regex separators("\\{|\\}|,|\\(|\\)|;");
@@ -46,18 +47,20 @@ bool isId(const string &str) { return regex_match(str, id); }
 bool isSeparator(const string &str) { return regex_match(str, separators); }
 
 void printToken(const string &token) {
-  if (!commentStarted)
+  if (!isComment(token) && !commentStarted)
     cout << line << ": ";
   if (isComment(token)) {
     if (!commentStarted) {
       commentBuffer.replace(2, 1, to_string(line));
+      commentBuffer.replace(6, 1, "");
+      commentBuffer += "\"";
       cout << endl << commentBuffer << endl;
       commentBuffer.clear();
     } else {
       commentBuffer += to_string(line);
       commentBuffer += "-";
       commentBuffer += to_string(line);
-      commentBuffer += ": ";
+      commentBuffer += ": \"";
     }
     cout << line << ": " << comments_map[token];
   } else if (commentStarted) {
@@ -96,7 +99,8 @@ void scanFile(const string &fileName) {
     cout << "Can't open file " << fileName << endl;
     exit(0);
   }
-
+  // TODO * broken when does not space properly
+  // TODO appear extra / in comment data
   bool commentCanEnd = false;
   bool commentCanStart = false;
   while (getline(inFile, l)) {
@@ -109,13 +113,19 @@ void scanFile(const string &fileName) {
         if (c == '*') {
           commentCanEnd = true;
           continue;
-        } else {
-          if (commentCanEnd && c == '/') {
-            _c += c;
+        }
+        if (commentCanEnd) {
+          if (c == '/') {
+
             commentStarted = false;
             commentCanEnd = false;
             printToken("*/");
             continue;
+          }
+          else {
+            popBuffer(buffer);
+            printToken("*");
+            commentCanEnd = false;
           }
         }
       } else {
@@ -132,9 +142,10 @@ void scanFile(const string &fileName) {
             printToken("/*");
             continue;
           } else {
-            string b = buffer.substr(0,buffer.size()-1);
+            string b = buffer.substr(0, buffer.size() - 1);
             popBuffer(b);
             printToken("/");
+            buffer.clear();
             commentCanStart = false;
           }
         }
@@ -142,6 +153,12 @@ void scanFile(const string &fileName) {
 
       if (isOperator(_c) && !isOperator(buffer)) {
         popBuffer(buffer);
+        buffer += c;
+      }
+
+      else if (!isOperator(_c) && isOperator(buffer)) {
+        printToken(buffer);
+        buffer = "";
         buffer += c;
       }
 
@@ -155,7 +172,6 @@ void scanFile(const string &fileName) {
       else if (isSeparator(_c)) {
         popBuffer(buffer);
         printToken(_c);
-        cout << buffer << endl;
       } else
         buffer += c;
     }
