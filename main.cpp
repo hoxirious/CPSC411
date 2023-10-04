@@ -34,6 +34,7 @@ const regex keywords("int|return|while|else|if|void");
 const regex operators("\\|=|==|<|>|<=|>=|\\*|\\+|-|\\/|=");
 const regex separators("\\{|\\}|,|\\(|\\)|;");
 bool commentStarted = false;
+string commentBuffer;
 int line = 1;
 
 bool isComment(const string &str) { return str == "/*" || str == "*/"; }
@@ -45,12 +46,23 @@ bool isId(const string &str) { return regex_match(str, id); }
 bool isSeparator(const string &str) { return regex_match(str, separators); }
 
 void printToken(const string &token) {
-  cout << line << ": ";
-  if (isComment(token))
-    cout << comments_map[token];
-  else if (commentStarted)
-    cout << "COMM_CONTENT " << token;
-  else if (isOperator(token))
+  if (!commentStarted)
+    cout << line << ": ";
+  if (isComment(token)) {
+    if (!commentStarted) {
+      commentBuffer.replace(2, 1, to_string(line));
+      cout << endl << commentBuffer << endl;
+      commentBuffer.clear();
+    } else {
+      commentBuffer += to_string(line);
+      commentBuffer += "-";
+      commentBuffer += to_string(line);
+      commentBuffer += ": ";
+    }
+    cout << line << ": " << comments_map[token];
+  } else if (commentStarted) {
+    commentBuffer += token;
+  } else if (isOperator(token))
     cout << operators_map[token];
   else if (isSeparator(token))
     cout << seperators_map[token];
@@ -62,7 +74,9 @@ void printToken(const string &token) {
     cout << "ID " << token;
   } else
     cout << "Invalid token: " << token;
-  cout << endl;
+
+  if (!commentStarted)
+    cout << endl;
 }
 
 void popBuffer(string &buffer) {
@@ -83,37 +97,46 @@ void scanFile(const string &fileName) {
     exit(0);
   }
 
+  bool commentCanEnd = false;
+  bool commentCanStart = false;
   while (getline(inFile, l)) {
     istringstream iss(l);
-    char backup_c = '\0';
     while (iss >> noskipws >> c) {
 
       string _c = string(1, c);
       // Catch content & close comment
-      if (commentStarted && c == '*') {
-        iss >> c;
-        if (c == '/') {
-          _c += c;
-          commentStarted = false;
-          printToken(_c);
-        } else {
-          backup_c = c;
-        }
-        // else move cursor to prev
-
-      }
-
-      // Catch open comment
-      else if (c == '/') {
-        iss >> c;
+      if (commentStarted) {
         if (c == '*') {
-          commentStarted = true;
-          _c += c;
+          commentCanEnd = true;
+          continue;
         } else {
-          backup_c = c;
+          if (commentCanEnd && c == '/') {
+            _c += c;
+            commentStarted = false;
+            commentCanEnd = false;
+            printToken("*/");
+            continue;
+          }
         }
-        if (commentStarted) {
-          printToken(_c);
+      } else {
+        // Catch open comment
+        if (c == '/') {
+          buffer += c;
+          commentCanStart = true;
+          continue;
+        }
+        if (commentCanStart) {
+          if (c == '*') {
+            commentStarted = true;
+            commentCanStart = false;
+            printToken("/*");
+            continue;
+          } else {
+            string b = buffer.substr(0,buffer.size()-1);
+            popBuffer(b);
+            printToken("/");
+            commentCanStart = false;
+          }
         }
       }
 
@@ -124,33 +147,17 @@ void scanFile(const string &fileName) {
 
       else if (isWhiteSpace(_c)) {
         popBuffer(buffer);
+        if (commentStarted) {
+          printToken(_c);
+        }
       }
 
       else if (isSeparator(_c)) {
         popBuffer(buffer);
         printToken(_c);
+        cout << buffer << endl;
       } else
         buffer += c;
-
-      if (backup_c != '\0') {
-        string _backup_c = string(1, backup_c);
-        if (isOperator(_backup_c) && !isOperator(buffer)) {
-          popBuffer(buffer);
-          buffer += backup_c;
-        }
-
-        else if (isWhiteSpace(_backup_c)) {
-          popBuffer(buffer);
-        }
-
-        else if (isSeparator(_backup_c)) {
-          popBuffer(buffer);
-          printToken(_backup_c);
-        } else
-          buffer += backup_c;
-
-        backup_c = '\0';
-      }
     }
     line++;
   }

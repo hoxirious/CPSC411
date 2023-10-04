@@ -4,6 +4,7 @@ x = x + 5 ;
     Multi line Comment;
 */
 x = x/3;
+x = x*3;
 /* Single line Comment */
 for(int i = 0, i <= 4; i++){
     x += i;
