@@ -2,16 +2,7 @@
 #include <ios>
 #include <ostream>
 #include <sstream>
-int main(int argc, char *argv[]) {
-  for (int i = 1; i < argc; i++) {
-    cout << "Scanning result of " << argv[i] << endl;
-    cout << "==============================" << endl;
-    scanFile(argv[i]);
-    cout << "==============================" << endl;
-  }
-  return 0;
-}
-
+#include <string>
 unordered_map<string, string> operators_map = {
     {"<", "LESS_THAN"},
     {">", "GREATER_THAN"},
@@ -32,16 +23,30 @@ unordered_map<string, string> seperators_map = {
 };
 
 unordered_map<string, string> comments_map = {{"/*", "O_COMM"},
-                                              {"*/", "C_COMM"}};
+    {"*/", "C_COMM"}};
 
 const regex id("\\s*[a-zA-Z][a-zA-Z]*");
 const regex num("\\s*[0-9][0-9]*");
 const regex keywords("int|return|while|else|if|void");
-const regex operators("\\|=|==|<|>|<=|>=|\\*|\\+|-|\\/|=");
+const regex operators("\\|=|==|<|>|<=|>=|\\*|\\+|-|\\/|=|\\|");
 const regex separators("\\{|\\}|,|\\(|\\)|;");
 bool commentStarted = false;
 string commentBuffer;
 int line = 1;
+int main(int argc, char *argv[]) {
+  for (int i = 0; i < 5; i++) {
+    string filelocation = "test/";
+    string filename = "test" + to_string(i) + ".txt";
+    cout << "Scanning result of " << filename << endl;
+    cout << "==============================" << endl;
+    scanFile(filelocation + filename);
+    cout << "==============================" << endl;
+    line = 1;
+    commentStarted =false;
+  }
+  return 0;
+}
+
 
 bool isComment(const string &str) { return str == "/*" || str == "*/"; }
 bool isOperator(const string &str) { return regex_match(str, operators); }
@@ -81,7 +86,7 @@ void printToken(const string &token) {
   else if (isId(token)) {
     cout << "ID " << token;
   } else
-    cout << "Invalid token: " << token;
+    cout << "Invalid token:" << token;
 
   if (!commentStarted)
     cout << endl;
@@ -161,7 +166,6 @@ void scanFile(const string &fileName) {
       else if (!isOperator(_c) && isOperator(buffer)) {
         printToken(buffer);
         buffer = "";
-        buffer += c;
       }
 
       else if (isWhiteSpace(_c)) {
@@ -177,6 +181,7 @@ void scanFile(const string &fileName) {
       } else
         buffer += c;
     }
+    popBuffer(buffer);
     line++;
   }
 

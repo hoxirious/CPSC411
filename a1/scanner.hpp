@@ -8,7 +8,7 @@
 #include <regex>
 
 using namespace std;
-
+void reinit();
 bool isId(const std::string &str);
 bool isComment(const std::string &str);
 bool isOperator(const std::string &str);
