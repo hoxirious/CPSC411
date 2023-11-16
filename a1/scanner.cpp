@@ -168,7 +168,7 @@ void scanFile(const string &fileName) {
         buffer = "";
       }
 
-      else if (isWhiteSpace(_c)) {
+      else if (isWhiteSpace(_c) ) {
         popBuffer(buffer);
         if (commentStarted) {
           printToken(_c);
