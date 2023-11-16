@@ -17,6 +17,7 @@ typedef enum {
   ASSIGN_EXPR,
   CALL_EXPR,
   ARG_EXPR,
+  VAR_EXPR,
 } expr_type;
 
 typedef enum {
@@ -29,26 +30,25 @@ typedef enum {
   SELECT_STMT,
   RETURN_STMT,
   ITER_STMT,
+  COMPOUND_STMT,
 } stmtKind;
 
 struct stmt {
   stmtKind kind;
-  struct expr *init_expr;
+  struct decl *decl;
   struct expr *expr;
-  struct expr *next_expr;
   struct stmt *body;
   struct stmt *else_body;
   struct stmt *next;
 };
 
-void createStmt(stmtKind kind, struct expr *init_expr,
-                struct expr *expr, struct expr *next_expr, struct stmt *body,
+struct stmt * createStmt(stmtKind kind, struct decl *decl,
+                struct expr *expr, struct stmt *body,
                 struct stmt *else_body, struct stmt *next) {
   struct stmt *newStmt = malloc(sizeof *newStmt);
   newStmt->kind = kind;
-  newStmt->init_expr = init_expr;
+  newStmt->decl = decl;
   newStmt->expr = expr;
-  newStmt->next_expr = next_expr;
   newStmt->body = body;
   newStmt->else_body = else_body;
   newStmt->next = next;
@@ -58,6 +58,7 @@ typedef enum {
   SIMPLE_DECL,
   ARRAY_DECL,
   FUNCTION_DECL,
+  LOCAL_DECL,
 } declKind;
 
 struct decl {
@@ -95,7 +96,7 @@ struct param {
   struct param *next;
 };
 
-void createParam(paramKind kind, struct type *type, char *id,
+struct param *createParam(paramKind kind, struct type *type, char *id,
                  struct param *next) {
   struct param *newParam = malloc(sizeof *newParam);
   newParam->kind = kind;
@@ -125,14 +126,15 @@ struct var {
   struct expr *expr;
 };
 
+struct var *createVar(char *id, struct expr *expr) {
+  struct var *newVar = malloc(sizeof *newVar);
+  newVar->id = id;
+  newVar->expr = expr;
+}
+
 struct arg_list {
   struct expr *expr;
   struct arg_list *next;
-};
-
-struct call {
-  char *id;
-  struct arg_list *args;
 };
 
 struct expr {
@@ -140,16 +142,17 @@ struct expr {
   struct expr *left;
   struct expr *right;
   int value;
+  char *id;
 };
 
 struct expr *createExpr(expr_type exprType, struct expr *left,
-                        struct expr *right, int value) {
-  struct expr *newExpr = (expr *)malloc(sizeof *newExpr);
+                        struct expr *right, int value, char *id) {
+  struct expr *newExpr = malloc(sizeof *newExpr);
   newExpr->exprType = exprType;
   newExpr->left = left;
   newExpr->right = right;
   newExpr->value = value;
-
+  newExpr->id = id;
   return newExpr;
 }
 
@@ -176,7 +179,6 @@ void printExpr(struct expr *expr) {
   case LESSER_EXPR:
     printf("Lesser: {");
     break;
-
   case GREATER_EXPR:
     printf("Greater: {");
     break;
@@ -196,10 +198,13 @@ void printExpr(struct expr *expr) {
     printf("Assignment: {");
     break;
   case CALL_EXPR:
-    printf("Call: {");
+    printf("Call: { ID: %s", expr->id);
     break;
   case ARG_EXPR:
     printf("Argument: {");
+    break;
+    case VAR_EXPR:
+    printf("Variable: { ID: %s", expr->id);
     break;
   default:
     break;
@@ -217,6 +222,16 @@ void printExpr(struct expr *expr) {
   printf("}}");
 }
 
+void printArg(struct arg_list *arg) {
+  if (!arg) {
+    return;
+  }
+  printf("ARG: {");
+  printExpr(arg->expr);
+  printf("}");
+  printArg(arg->next);
+}
+
 char *getType(struct type *type) {
   char *arr = (char *)malloc(5);
 
@@ -229,6 +244,7 @@ char *getType(struct type *type) {
     break;
   }
 }
+
 void printParam(struct param *param) {
   if (!param) {
     return;
@@ -236,14 +252,14 @@ void printParam(struct param *param) {
 
   char *typeString = getType(param->type);
 
-  if (param->kind == array_param)
+  if (param->kind == ARRAY_PARAM)
     printf("PARAM_ARRAY: { ID: %s, Type: %s", param->id, typeString);
   else
     printf("PARAM: { ID: %s, Type: %s", param->id, typeString);
 
+  printf("} ");
   printParam(param->next);
 }
-
 void printStmt(struct stmt *stmt) {
 
   if (!stmt) {
@@ -296,6 +312,6 @@ void printDecl(struct decl *decl) {
   } else
     printf("DECLARATION: { ID: %s, Type: %s", decl->id, typeString);
 
-  printf("}");
+  printf("}\n");
   printDecl(decl->next);
 }

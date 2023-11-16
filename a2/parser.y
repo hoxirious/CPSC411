@@ -1,7 +1,7 @@
 %{
     // C code
     #include<stdio.h>
-    #include"scanner.h"
+    #include"lex.yy.c"
     #include"ast.h"
     struct decl *parser_result = 0;
     int yyerror(char *msg);
@@ -13,23 +13,23 @@
 
 //  declaration -> var-declaration | fun-declaration
 
-//  var-declaration -> type-specifier ID ; | type-specifier ID [ NUM ] ;
+//  var-declaration -> type ID ; | type-specifier ID [ NUM ] ;
 
-//  type-specifier -> int | void
+//  type -> int | void
 
-//  fun-declaration -> type-specifier ID ( params) compound-stmt
+//  fun-declaration -> type ID ( params) compound-stmt
 
 //  params -> param-list | void
 
 //  param-list -> param-list , param | param
 
-//  param -> type-specifier ID | type-specifier ID [ ]
+//  param -> type ID | type-specifier ID [ ]
 
 //  compound-stmt -> { local-declarations statement-list }
 
-//  local-declarations -> local-declarations var-declaration | empty
+//  local-declarations -> local-declarations var-declaration |
 
-//  statement-list -> statement-list statement | empty
+//  statement-list -> statement-list statement |
 
 //  statement -> expression-stmt | compound-stmt | selection-stmt
 
@@ -65,17 +65,19 @@
 
 //  factor - ( expression ) | var | call | NUM
 //  call -> ID ( args )
-//  args -> arg-list | empty
+//  args -> arg-list |
 //  arg-list -> arg-list , expression | expression
 %}
 
 %define parse.error verbose
-%token PLUS ARRAY MULT MINUS DIV O_PAREN C_PAREN SEMICOLON COMMA NOT_EQ ASSIGN O_BRACE C_BRACE O_COMMENT C_COMMENT COLON INT VOID LESSER GREATER LESSER_EQ GREATER_EQ
+%token PLUS ARRAY MULT MINUS DIV O_PAREN ERROR C_PAREN SEMICOLON COMMA NOT_EQ ASSIGN O_BRACE C_BRACE O_COMMENT C_COMMENT COLON INT VOID LESSER GREATER LESSER_EQ GREATER_EQ EQ ID NUM WHILE IF ELSE RETURN
+
 %union {
     struct decl *decl;
     struct expr *expr;
     struct stmt *stmt;
     struct type *type;
+    struct var *var;
     struct param *param;
     char *id;
     int num;
@@ -88,11 +90,13 @@
 
 %type<num> NUM
 
-//%type<param_list> param-list
+%type<param> param-list param
 
-%type<type> type_specifier
+%type<var> var
 
-%type<expr> expression var simple_expression additive_expression relop term factor addop mulop arg_list args
+%type<type> type
+
+%type<expr> expression simple_expression additive_expression term factor arg_list args
 %%
 // new grammar
 program: declaration-list    {parser_result = $1;}
@@ -101,57 +105,67 @@ declaration-list: declaration declaration-list {$$ = $1; $1->next=$2;} | declara
 
 declaration: var-declaration {$$ = $1;} | fun-declaration {$$ = $1;}
 
-var-declaration: type-specifier ID SEMICOLON {$$ = createDecl(SIMPLE_DECL, $2, 0, $1, 0, 0, 0);} | type-specifier ID O_BRACE NUM C_BRACE SEMICOLON {$$ = createDecl(ARRAY_DECL, $2, $4, $1,0,0 0);}
+var-declaration: type ID SEMICOLON {$$ = createDecl(SIMPLE_DECL, $2, 0, $1, 0, 0, 0);}
+                | type ID O_BRACE NUM C_BRACE SEMICOLON {$$ = createDecl(ARRAY_DECL, $2, $4, $1, 0, 0, 0);}
 
-type-specifier: INT {$$ = createType(INT_TYPE, 0, 0);} | VOID {$$ = createType(VOID_TYPE, 0, 0);}
 
-fun-declaration: type-specifier ID O_PAREN params C_PAREN compound_stmt {$$ = createDecl(FUNCTION_DECL, $2, 0, $1, $4, $6);}
+type: INT {$$ = createType(INT_TYPE, 0, 0);} | VOID {$$ = createType(VOID_TYPE, 0, 0);}
 
-params: param-list {$$ = $1;} | VOID {$$ = createType(VOID_TYPE, 0, 0);}
+fun-declaration: type ID O_PAREN param-list C_PAREN compound_stmt {$$ = createDecl(FUNCTION_DECL, $2, 0, $1, $4, $6, 0);}
 
-param-list: param COMMA param_list {$$ = $1; $1->next=$3;} | param {$$ = $1;}
+param-list: param COMMA param-list {$$ = $1; $1->next=$3;}
+            | param {$$ = $1;}
+            | {$$ = 0;}
 
-param: type-specifier ID {$$ = createParam(SIMPLE_PARAM,$1, $2, 0);} | type-specifier ID O_BRACE C_BRACE {$$ = createParam(ARRAY_PARAM, $1, $2, 0);}
+param: type ID {$$ = createParam(SIMPLE_PARAM,$1, $2, 0);} | type ID O_BRACE C_BRACE {$$ = createParam(ARRAY_PARAM, $1, $2, 0);}
 
-compound_stmt: O_BRACE local-declarations statement-list C_BRACE {$$ = createStmt($2, $3);}
+compound_stmt: O_BRACE local-declarations statement-list C_BRACE {$$ = createStmt(COMPOUND_STMT, $2,0,0,0,$3);}
 
-local-declarations: local-declarations var-declaration {$$ = $1; $1->next=$2;} | {$$ = 0;}
+local-declarations: var-declaration local-declarations {$$ = $1; $1->next=$2;} |  {$$ = 0;}
 
-statement-list: statement-list statement {$$ = $1; $1->next=$2;} | {$$ = 0;}
+statement-list: statement statement-list {$$ = $1; $1->next=$2;} | {$$ = 0;}
 
 statement: expression_stmt {$$ = $1;} | compound_stmt {$$ = $1;} | selection_stmt {$$ = $1;} | iteration_stmt {$$ = $1;} | return_stmt {$$ = $1;}
 
-expression_stmt: expression SEMICOLON {$$ = createExprStmt($1);}
+expression_stmt: expression SEMICOLON {$$ = createStmt(EXPR_STMT, 0, $1, 0,0,0);}
 
-selection_stmt: IF O_PAREN expression C_PAREN statement {$$ = createIfStmt($3, $5, 0);} | IF O_PAREN expression C_PAREN statement ELSE statement {$$ = createIfStmt($3, $5, $7);}
+selection_stmt: IF O_PAREN expression C_PAREN statement {$$ = createStmt(SELECT_STMT, 0, $3, $5, 0,0);}
+              | IF O_PAREN expression C_PAREN statement ELSE statement {$$ = createStmt(SELECT_STMT, 0, $3, $5,$7,0);}
 
-iteration_stmt: WHILE O_PAREN expression C_PAREN statement {$$ = createWhileStmt($3, $5);}
+iteration_stmt: WHILE O_PAREN expression C_PAREN statement {$$ = createStmt(ITER_STMT, 0, $3, $5,0,0);}
 
-return_stmt: RETURN SEMICOLON {$$ = createReturnStmt(0);} | RETURN expression SEMICOLON {$$ = createReturnStmt($2);}
+return_stmt: RETURN SEMICOLON {$$ = createStmt(RETURN_STMT,0,0,0,0,0);} | RETURN expression SEMICOLON {$$ = createStmt(RETURN_STMT, 0, $2,0,0,0);}
 
-expression: var ASSIGN expression {$$ = createExpr(ASSIGN_EXPR, $1, $3, 0);} | simple_expression {$$ = $1;}
+expression: var ASSIGN expression {$$ = createExpr(ASSIGN_EXPR, $1, $3, 0, 0);} | simple_expression {$$ = $1;}
 
-var: ID {$$ = createVar($1, 0);} | ID O_BRACE expression C_BRACE {$$ = createVar($1, $3);}
+var: ID {$$ = createExpr(VAR_EXPR, 0, 0,0, $1);} | ID O_BRACE expression C_BRACE {$$ = createExpr(VAR_EXPR, 0,$3,0, $1);}
 
-simple_expression: additive_expression relop additive_expression {$$ = createExpr(REL_EXPR, $1, $3, $2);} | additive_expression {$$ = $1;}
+simple_expression: additive_expression LESSER  additive_expression {$$ = createExpr(LESSER_EXPR, $1, $3, 0, 0);}
+                 | additive_expression GREATER additive_expression {$$ = createExpr(GREATER_EXPR, $1, $3,0, 0);}
+                 | additive_expression LESSER_EQ additive_expression {$$ = createExpr(LESSER_EQ_EXPR, $1, $3, 0, 0);}
+                 | additive_expression GREATER_EQ additive_expression {$$ = createExpr(GREATER_EQ_EXPR, $1, $3, 0, 0);}
+                 | additive_expression EQ additive_expression {$$ = createExpr(EQ_EXPR, $1, $3, 0, 0);}
+                 | additive_expression NOT_EQ additive_expression {$$ = createExpr(NOT_EQ_EXPR, $1, $3, 0, 0);}
+                 | additive_expression {$$ = $1;}
 
-relop: LESSER {$$ = createExpr(LESSER_EXPR, 0, 0, 0);} | GREATER {$$ = createExpr(GREATER_EXPR, 0, 0, 0);} | LESSER_EQ {$$ = createExpr(LESSER_EQ_EXPR, 0, 0, 0);} | GREATER_EQ {$$ = createExpr(GREATER_EQ_EXPR, 0, 0, 0);} | EQ {$$ = createExpr(EQ_EXPR, 0, 0, 0);} | NOT_EQ {$$ = createExpr(NOT_EQ_EXPR, 0, 0, 0);}
+additive_expression: additive_expression PLUS term {$$ = createExpr(ADD_EXPR, $1, $3, 0,0);}
+                    | additive_expression MINUS term {$$ = createExpr(SUB_EXPR, $1, $3, 0,0);}
+                    | term {$$ = $1;}
 
-additive_expression: additive_expression addop term {$$ = createExpr(ADD_EXPR, $1, $3, $2);} | term {$$ = $1;}
+term: term DIV factor   {$$ = createExpr(DIV_EXPR, $1, $3, 0,0);}
+    | term MULT factor  {$$ = createExpr(MULT_EXPR, $1, $3, 0,0);}
+    | factor    {$$ = $1;}
 
-addop: PLUS {$$ = createExpr(ADD_EXPR, 0, 0, 0);} | MINUS {$$ = createExpr(SUB_EXPR, 0, 0, 0);}
+factor: O_PAREN expression C_PAREN {$$ = $2;}
+      | var {$$ = $1;}
+      | call {$$ = $1;}
+      | NUM {$$ = createExpr(NUM_EXPR, 0, 0, $1,0);}
 
-term: term mulop factor {$$ = createExpr(MULT_EXPR, $1, $3, $2);} | factor {$$ = $1;}
+call: ID O_PAREN args C_PAREN {$$ = createExpr(CALL_EXPR, 0,$3,0,$1);}
 
-mulop: MULT {$$ = createExpr(MULT_EXPR, 0, 0, 0);} | DIV {$$ = createExpr(DIV_EXPR, 0, 0, 0);}
+args: arg_list {$$ = $1;} |  {$$ = 0;}
 
-factor: O_PAREN expression C_PAREN {$$ = $2;} | var {$$ = $1;} | call {$$ = $1;} | NUM {$$ = createExpr(NUM_EXPR, 0, 0, $1);}
-
-call: ID O_PAREN args C_PAREN {$$ = createCall($1, $3);}
-
-args: arg_list {$$ = $1;} | {$$ = 0;}
-
-arg_list: arg_list COMMA expression {$$ = $1; $1->next=$3;} | expression {$$ = $1;}
+arg_list: expression COMMA arg_list {$$ = createExpr(ARG_EXPR,$1,0,0,0); $1->right=$3;} | expression {$$ = createExpr(ARG_EXPR,$1,0,0,0);}
 
 %%
 

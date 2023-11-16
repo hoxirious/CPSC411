@@ -68,7 +68,11 @@ LETTER [a-z|A-Z]
 "*/"    {return C_COMMENT;}
 ":"     {return COLON;}
 "int"   {return INT;}
-"bool"  {return BOOL;}
+"void"  {return VOID;}
+"if"    {return IF;}
+"else"  {return ELSE;}
+"while" {return WHILE;}
+"return" {return RETURN;}
 "<"     {return LESSER;}
 ">"     {return GREATER;}
 "<="    {return LESSER_EQ;}
