@@ -97,6 +97,8 @@
 %type<type> type
 
 %type<expr> expression simple_expression additive_expression term factor arg_list args
+
+%locations
 %%
 // new grammar
 program: declaration-list    {parser_result = $1;}
@@ -108,16 +110,16 @@ declaration: var-declaration {$$ = $1;} | fun-declaration {$$ = $1;}
 var-declaration: type ID SEMICOLON {$$ = createDecl(SIMPLE_DECL, $2, 0, $1, 0, 0, 0);}
                 | type ID O_BRACE NUM C_BRACE SEMICOLON {$$ = createDecl(ARRAY_DECL, $2, $4, $1, 0, 0, 0);}
 
-
 type: INT {$$ = createType(INT_TYPE, 0, 0);} | VOID {$$ = createType(VOID_TYPE, 0, 0);}
 
 fun-declaration: type ID O_PAREN param-list C_PAREN compound_stmt {$$ = createDecl(FUNCTION_DECL, $2, 0, $1, $4, $6, 0);}
 
 param-list: param COMMA param-list {$$ = $1; $1->next=$3;}
             | param {$$ = $1;}
-            | {$$ = 0;}
+            | VOID {$$ = createParam(VOID_PARAM,0,0,0);}
 
-param: type ID {$$ = createParam(SIMPLE_PARAM,$1, $2, 0);} | type ID O_BRACE C_BRACE {$$ = createParam(ARRAY_PARAM, $1, $2, 0);}
+param: type ID {$$ = createParam(SIMPLE_PARAM,$1, $2, 0);}
+     | type ID O_BRACE C_BRACE {$$ = createParam(ARRAY_PARAM, $1, $2, 0);}
 
 compound_stmt: O_BRACE local-declarations statement-list C_BRACE {$$ = createStmt(COMPOUND_STMT, $2,0,0,0,$3);}
 
@@ -190,7 +192,7 @@ int main(int argc, char **argv){
         printDecl(parser_result);
         printf("\nparsing successful");
     }else {
-        printf("parsing failed");
+        result = yyerror("parsing failed");
     }
 
     return result;
@@ -198,6 +200,6 @@ int main(int argc, char **argv){
 }
 
 int yyerror(char *msg){
-    printf("parsing failed: %s\n", msg);
+    fprintf(stderr,"Error | Line: %d\n%s\n",yylineno,msg);
     return 1;
 }

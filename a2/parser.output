@@ -7,7 +7,7 @@ Terminals unused in grammar
     COLON
 
 
-State 102 conflicts: 1 shift/reduce
+State 103 conflicts: 1 shift/reduce
 
 
 Grammar
@@ -32,7 +32,7 @@ Grammar
 
    11 param-list: param COMMA param-list
    12           | param
-   13           | ε
+   13           | VOID
 
    14 param: type ID
    15      | type ID O_BRACE C_BRACE
@@ -119,7 +119,7 @@ Terminals, with rules where they appear
     C_COMMENT (273)
     COLON (274)
     INT (275) 8
-    VOID (276) 9
+    VOID (276) 9 13
     LESSER (277) 36
     GREATER (278) 37
     LESSER_EQ (279) 38
@@ -327,13 +327,11 @@ State 12
    10 fun-declaration: type ID O_PAREN • param-list C_PAREN compound_stmt
 
     INT   shift, and go to state 1
-    VOID  shift, and go to state 2
+    VOID  shift, and go to state 15
 
-    $default  reduce using rule 13 (param-list)
-
-    type        go to state 15
-    param-list  go to state 16
-    param       go to state 17
+    type        go to state 16
+    param-list  go to state 17
+    param       go to state 18
 
 
 State 13
@@ -347,89 +345,96 @@ State 14
 
     7 var-declaration: type ID O_BRACE • NUM C_BRACE SEMICOLON
 
-    NUM  shift, and go to state 18
+    NUM  shift, and go to state 19
 
 
 State 15
 
-   14 param: type • ID
-   15      | type • ID O_BRACE C_BRACE
+    9 type: VOID •
+   13 param-list: VOID •
 
-    ID  shift, and go to state 19
+    C_PAREN   reduce using rule 13 (param-list)
+    $default  reduce using rule 9 (type)
 
 
 State 16
 
-   10 fun-declaration: type ID O_PAREN param-list • C_PAREN compound_stmt
+   14 param: type • ID
+   15      | type • ID O_BRACE C_BRACE
 
-    C_PAREN  shift, and go to state 20
+    ID  shift, and go to state 20
 
 
 State 17
 
-   11 param-list: param • COMMA param-list
-   12           | param •
+   10 fun-declaration: type ID O_PAREN param-list • C_PAREN compound_stmt
 
-    COMMA  shift, and go to state 21
-
-    $default  reduce using rule 12 (param-list)
+    C_PAREN  shift, and go to state 21
 
 
 State 18
 
-    7 var-declaration: type ID O_BRACE NUM • C_BRACE SEMICOLON
+   11 param-list: param • COMMA param-list
+   12           | param •
 
-    C_BRACE  shift, and go to state 22
+    COMMA  shift, and go to state 22
+
+    $default  reduce using rule 12 (param-list)
 
 
 State 19
 
-   14 param: type ID •
-   15      | type ID • O_BRACE C_BRACE
+    7 var-declaration: type ID O_BRACE NUM • C_BRACE SEMICOLON
 
-    O_BRACE  shift, and go to state 23
-
-    $default  reduce using rule 14 (param)
+    C_BRACE  shift, and go to state 23
 
 
 State 20
 
-   10 fun-declaration: type ID O_PAREN param-list C_PAREN • compound_stmt
+   14 param: type ID •
+   15      | type ID • O_BRACE C_BRACE
 
     O_BRACE  shift, and go to state 24
 
-    compound_stmt  go to state 25
+    $default  reduce using rule 14 (param)
 
 
 State 21
 
-   11 param-list: param COMMA • param-list
+   10 fun-declaration: type ID O_PAREN param-list C_PAREN • compound_stmt
 
-    INT   shift, and go to state 1
-    VOID  shift, and go to state 2
+    O_BRACE  shift, and go to state 25
 
-    $default  reduce using rule 13 (param-list)
-
-    type        go to state 15
-    param-list  go to state 26
-    param       go to state 17
+    compound_stmt  go to state 26
 
 
 State 22
 
-    7 var-declaration: type ID O_BRACE NUM C_BRACE • SEMICOLON
+   11 param-list: param COMMA • param-list
 
-    SEMICOLON  shift, and go to state 27
+    INT   shift, and go to state 1
+    VOID  shift, and go to state 15
+
+    type        go to state 16
+    param-list  go to state 27
+    param       go to state 18
 
 
 State 23
 
-   15 param: type ID O_BRACE • C_BRACE
+    7 var-declaration: type ID O_BRACE NUM C_BRACE • SEMICOLON
 
-    C_BRACE  shift, and go to state 28
+    SEMICOLON  shift, and go to state 28
 
 
 State 24
+
+   15 param: type ID O_BRACE • C_BRACE
+
+    C_BRACE  shift, and go to state 29
+
+
+State 25
 
    16 compound_stmt: O_BRACE • local-declarations statement-list C_BRACE
 
@@ -438,40 +443,40 @@ State 24
 
     $default  reduce using rule 18 (local-declarations)
 
-    var-declaration     go to state 29
-    type                go to state 30
-    local-declarations  go to state 31
+    var-declaration     go to state 30
+    type                go to state 31
+    local-declarations  go to state 32
 
 
-State 25
+State 26
 
    10 fun-declaration: type ID O_PAREN param-list C_PAREN compound_stmt •
 
     $default  reduce using rule 10 (fun-declaration)
 
 
-State 26
+State 27
 
    11 param-list: param COMMA param-list •
 
     $default  reduce using rule 11 (param-list)
 
 
-State 27
+State 28
 
     7 var-declaration: type ID O_BRACE NUM C_BRACE SEMICOLON •
 
     $default  reduce using rule 7 (var-declaration)
 
 
-State 28
+State 29
 
    15 param: type ID O_BRACE C_BRACE •
 
     $default  reduce using rule 15 (param)
 
 
-State 29
+State 30
 
    17 local-declarations: var-declaration • local-declarations
 
@@ -480,57 +485,57 @@ State 29
 
     $default  reduce using rule 18 (local-declarations)
 
-    var-declaration     go to state 29
-    type                go to state 30
-    local-declarations  go to state 32
-
-
-State 30
-
-    6 var-declaration: type • ID SEMICOLON
-    7                | type • ID O_BRACE NUM C_BRACE SEMICOLON
-
-    ID  shift, and go to state 33
+    var-declaration     go to state 30
+    type                go to state 31
+    local-declarations  go to state 33
 
 
 State 31
 
-   16 compound_stmt: O_BRACE local-declarations • statement-list C_BRACE
+    6 var-declaration: type • ID SEMICOLON
+    7                | type • ID O_BRACE NUM C_BRACE SEMICOLON
 
-    O_PAREN  shift, and go to state 34
-    O_BRACE  shift, and go to state 24
-    ID       shift, and go to state 35
-    NUM      shift, and go to state 36
-    WHILE    shift, and go to state 37
-    IF       shift, and go to state 38
-    RETURN   shift, and go to state 39
-
-    $default  reduce using rule 20 (statement-list)
-
-    compound_stmt        go to state 40
-    statement-list       go to state 41
-    statement            go to state 42
-    expression_stmt      go to state 43
-    selection_stmt       go to state 44
-    iteration_stmt       go to state 45
-    return_stmt          go to state 46
-    expression           go to state 47
-    var                  go to state 48
-    simple_expression    go to state 49
-    additive_expression  go to state 50
-    term                 go to state 51
-    factor               go to state 52
-    call                 go to state 53
+    ID  shift, and go to state 34
 
 
 State 32
+
+   16 compound_stmt: O_BRACE local-declarations • statement-list C_BRACE
+
+    O_PAREN  shift, and go to state 35
+    O_BRACE  shift, and go to state 25
+    ID       shift, and go to state 36
+    NUM      shift, and go to state 37
+    WHILE    shift, and go to state 38
+    IF       shift, and go to state 39
+    RETURN   shift, and go to state 40
+
+    $default  reduce using rule 20 (statement-list)
+
+    compound_stmt        go to state 41
+    statement-list       go to state 42
+    statement            go to state 43
+    expression_stmt      go to state 44
+    selection_stmt       go to state 45
+    iteration_stmt       go to state 46
+    return_stmt          go to state 47
+    expression           go to state 48
+    var                  go to state 49
+    simple_expression    go to state 50
+    additive_expression  go to state 51
+    term                 go to state 52
+    factor               go to state 53
+    call                 go to state 54
+
+
+State 33
 
    17 local-declarations: var-declaration local-declarations •
 
     $default  reduce using rule 17 (local-declarations)
 
 
-State 33
+State 34
 
     6 var-declaration: type ID • SEMICOLON
     7                | type ID • O_BRACE NUM C_BRACE SEMICOLON
@@ -539,173 +544,173 @@ State 33
     O_BRACE    shift, and go to state 14
 
 
-State 34
+State 35
 
    49 factor: O_PAREN • expression C_PAREN
 
-    O_PAREN  shift, and go to state 34
-    ID       shift, and go to state 35
-    NUM      shift, and go to state 36
+    O_PAREN  shift, and go to state 35
+    ID       shift, and go to state 36
+    NUM      shift, and go to state 37
 
-    expression           go to state 54
-    var                  go to state 48
-    simple_expression    go to state 49
-    additive_expression  go to state 50
-    term                 go to state 51
-    factor               go to state 52
-    call                 go to state 53
+    expression           go to state 55
+    var                  go to state 49
+    simple_expression    go to state 50
+    additive_expression  go to state 51
+    term                 go to state 52
+    factor               go to state 53
+    call                 go to state 54
 
 
-State 35
+State 36
 
    34 var: ID •
    35    | ID • O_BRACE expression C_BRACE
    53 call: ID • O_PAREN args C_PAREN
 
-    O_PAREN  shift, and go to state 55
-    O_BRACE  shift, and go to state 56
+    O_PAREN  shift, and go to state 56
+    O_BRACE  shift, and go to state 57
 
     $default  reduce using rule 34 (var)
 
 
-State 36
+State 37
 
    52 factor: NUM •
 
     $default  reduce using rule 52 (factor)
 
 
-State 37
-
-   29 iteration_stmt: WHILE • O_PAREN expression C_PAREN statement
-
-    O_PAREN  shift, and go to state 57
-
-
 State 38
 
-   27 selection_stmt: IF • O_PAREN expression C_PAREN statement
-   28               | IF • O_PAREN expression C_PAREN statement ELSE statement
+   29 iteration_stmt: WHILE • O_PAREN expression C_PAREN statement
 
     O_PAREN  shift, and go to state 58
 
 
 State 39
 
-   30 return_stmt: RETURN • SEMICOLON
-   31            | RETURN • expression SEMICOLON
+   27 selection_stmt: IF • O_PAREN expression C_PAREN statement
+   28               | IF • O_PAREN expression C_PAREN statement ELSE statement
 
-    O_PAREN    shift, and go to state 34
-    SEMICOLON  shift, and go to state 59
-    ID         shift, and go to state 35
-    NUM        shift, and go to state 36
-
-    expression           go to state 60
-    var                  go to state 48
-    simple_expression    go to state 49
-    additive_expression  go to state 50
-    term                 go to state 51
-    factor               go to state 52
-    call                 go to state 53
+    O_PAREN  shift, and go to state 59
 
 
 State 40
+
+   30 return_stmt: RETURN • SEMICOLON
+   31            | RETURN • expression SEMICOLON
+
+    O_PAREN    shift, and go to state 35
+    SEMICOLON  shift, and go to state 60
+    ID         shift, and go to state 36
+    NUM        shift, and go to state 37
+
+    expression           go to state 61
+    var                  go to state 49
+    simple_expression    go to state 50
+    additive_expression  go to state 51
+    term                 go to state 52
+    factor               go to state 53
+    call                 go to state 54
+
+
+State 41
 
    22 statement: compound_stmt •
 
     $default  reduce using rule 22 (statement)
 
 
-State 41
+State 42
 
    16 compound_stmt: O_BRACE local-declarations statement-list • C_BRACE
 
-    C_BRACE  shift, and go to state 61
-
-
-State 42
-
-   19 statement-list: statement • statement-list
-
-    O_PAREN  shift, and go to state 34
-    O_BRACE  shift, and go to state 24
-    ID       shift, and go to state 35
-    NUM      shift, and go to state 36
-    WHILE    shift, and go to state 37
-    IF       shift, and go to state 38
-    RETURN   shift, and go to state 39
-
-    $default  reduce using rule 20 (statement-list)
-
-    compound_stmt        go to state 40
-    statement-list       go to state 62
-    statement            go to state 42
-    expression_stmt      go to state 43
-    selection_stmt       go to state 44
-    iteration_stmt       go to state 45
-    return_stmt          go to state 46
-    expression           go to state 47
-    var                  go to state 48
-    simple_expression    go to state 49
-    additive_expression  go to state 50
-    term                 go to state 51
-    factor               go to state 52
-    call                 go to state 53
+    C_BRACE  shift, and go to state 62
 
 
 State 43
+
+   19 statement-list: statement • statement-list
+
+    O_PAREN  shift, and go to state 35
+    O_BRACE  shift, and go to state 25
+    ID       shift, and go to state 36
+    NUM      shift, and go to state 37
+    WHILE    shift, and go to state 38
+    IF       shift, and go to state 39
+    RETURN   shift, and go to state 40
+
+    $default  reduce using rule 20 (statement-list)
+
+    compound_stmt        go to state 41
+    statement-list       go to state 63
+    statement            go to state 43
+    expression_stmt      go to state 44
+    selection_stmt       go to state 45
+    iteration_stmt       go to state 46
+    return_stmt          go to state 47
+    expression           go to state 48
+    var                  go to state 49
+    simple_expression    go to state 50
+    additive_expression  go to state 51
+    term                 go to state 52
+    factor               go to state 53
+    call                 go to state 54
+
+
+State 44
 
    21 statement: expression_stmt •
 
     $default  reduce using rule 21 (statement)
 
 
-State 44
+State 45
 
    23 statement: selection_stmt •
 
     $default  reduce using rule 23 (statement)
 
 
-State 45
+State 46
 
    24 statement: iteration_stmt •
 
     $default  reduce using rule 24 (statement)
 
 
-State 46
+State 47
 
    25 statement: return_stmt •
 
     $default  reduce using rule 25 (statement)
 
 
-State 47
+State 48
 
    26 expression_stmt: expression • SEMICOLON
 
-    SEMICOLON  shift, and go to state 63
+    SEMICOLON  shift, and go to state 64
 
 
-State 48
+State 49
 
    32 expression: var • ASSIGN expression
    50 factor: var •
 
-    ASSIGN  shift, and go to state 64
+    ASSIGN  shift, and go to state 65
 
     $default  reduce using rule 50 (factor)
 
 
-State 49
+State 50
 
    33 expression: simple_expression •
 
     $default  reduce using rule 33 (expression)
 
 
-State 50
+State 51
 
    36 simple_expression: additive_expression • LESSER additive_expression
    37                  | additive_expression • GREATER additive_expression
@@ -717,644 +722,644 @@ State 50
    43 additive_expression: additive_expression • PLUS term
    44                    | additive_expression • MINUS term
 
-    PLUS        shift, and go to state 65
-    MINUS       shift, and go to state 66
-    NOT_EQ      shift, and go to state 67
-    LESSER      shift, and go to state 68
-    GREATER     shift, and go to state 69
-    LESSER_EQ   shift, and go to state 70
-    GREATER_EQ  shift, and go to state 71
-    EQ          shift, and go to state 72
+    PLUS        shift, and go to state 66
+    MINUS       shift, and go to state 67
+    NOT_EQ      shift, and go to state 68
+    LESSER      shift, and go to state 69
+    GREATER     shift, and go to state 70
+    LESSER_EQ   shift, and go to state 71
+    GREATER_EQ  shift, and go to state 72
+    EQ          shift, and go to state 73
 
     $default  reduce using rule 42 (simple_expression)
 
 
-State 51
+State 52
 
    45 additive_expression: term •
    46 term: term • DIV factor
    47     | term • MULT factor
 
-    MULT  shift, and go to state 73
-    DIV   shift, and go to state 74
+    MULT  shift, and go to state 74
+    DIV   shift, and go to state 75
 
     $default  reduce using rule 45 (additive_expression)
 
 
-State 52
+State 53
 
    48 term: factor •
 
     $default  reduce using rule 48 (term)
 
 
-State 53
+State 54
 
    51 factor: call •
 
     $default  reduce using rule 51 (factor)
 
 
-State 54
+State 55
 
    49 factor: O_PAREN expression • C_PAREN
 
-    C_PAREN  shift, and go to state 75
-
-
-State 55
-
-   53 call: ID O_PAREN • args C_PAREN
-
-    O_PAREN  shift, and go to state 34
-    ID       shift, and go to state 35
-    NUM      shift, and go to state 36
-
-    $default  reduce using rule 55 (args)
-
-    expression           go to state 76
-    var                  go to state 48
-    simple_expression    go to state 49
-    additive_expression  go to state 50
-    term                 go to state 51
-    factor               go to state 52
-    call                 go to state 53
-    args                 go to state 77
-    arg_list             go to state 78
+    C_PAREN  shift, and go to state 76
 
 
 State 56
 
-   35 var: ID O_BRACE • expression C_BRACE
+   53 call: ID O_PAREN • args C_PAREN
 
-    O_PAREN  shift, and go to state 34
-    ID       shift, and go to state 35
-    NUM      shift, and go to state 36
+    O_PAREN  shift, and go to state 35
+    ID       shift, and go to state 36
+    NUM      shift, and go to state 37
 
-    expression           go to state 79
-    var                  go to state 48
-    simple_expression    go to state 49
-    additive_expression  go to state 50
-    term                 go to state 51
-    factor               go to state 52
-    call                 go to state 53
+    $default  reduce using rule 55 (args)
+
+    expression           go to state 77
+    var                  go to state 49
+    simple_expression    go to state 50
+    additive_expression  go to state 51
+    term                 go to state 52
+    factor               go to state 53
+    call                 go to state 54
+    args                 go to state 78
+    arg_list             go to state 79
 
 
 State 57
 
-   29 iteration_stmt: WHILE O_PAREN • expression C_PAREN statement
+   35 var: ID O_BRACE • expression C_BRACE
 
-    O_PAREN  shift, and go to state 34
-    ID       shift, and go to state 35
-    NUM      shift, and go to state 36
+    O_PAREN  shift, and go to state 35
+    ID       shift, and go to state 36
+    NUM      shift, and go to state 37
 
     expression           go to state 80
-    var                  go to state 48
-    simple_expression    go to state 49
-    additive_expression  go to state 50
-    term                 go to state 51
-    factor               go to state 52
-    call                 go to state 53
+    var                  go to state 49
+    simple_expression    go to state 50
+    additive_expression  go to state 51
+    term                 go to state 52
+    factor               go to state 53
+    call                 go to state 54
 
 
 State 58
 
-   27 selection_stmt: IF O_PAREN • expression C_PAREN statement
-   28               | IF O_PAREN • expression C_PAREN statement ELSE statement
+   29 iteration_stmt: WHILE O_PAREN • expression C_PAREN statement
 
-    O_PAREN  shift, and go to state 34
-    ID       shift, and go to state 35
-    NUM      shift, and go to state 36
+    O_PAREN  shift, and go to state 35
+    ID       shift, and go to state 36
+    NUM      shift, and go to state 37
 
     expression           go to state 81
-    var                  go to state 48
-    simple_expression    go to state 49
-    additive_expression  go to state 50
-    term                 go to state 51
-    factor               go to state 52
-    call                 go to state 53
+    var                  go to state 49
+    simple_expression    go to state 50
+    additive_expression  go to state 51
+    term                 go to state 52
+    factor               go to state 53
+    call                 go to state 54
 
 
 State 59
+
+   27 selection_stmt: IF O_PAREN • expression C_PAREN statement
+   28               | IF O_PAREN • expression C_PAREN statement ELSE statement
+
+    O_PAREN  shift, and go to state 35
+    ID       shift, and go to state 36
+    NUM      shift, and go to state 37
+
+    expression           go to state 82
+    var                  go to state 49
+    simple_expression    go to state 50
+    additive_expression  go to state 51
+    term                 go to state 52
+    factor               go to state 53
+    call                 go to state 54
+
+
+State 60
 
    30 return_stmt: RETURN SEMICOLON •
 
     $default  reduce using rule 30 (return_stmt)
 
 
-State 60
+State 61
 
    31 return_stmt: RETURN expression • SEMICOLON
 
-    SEMICOLON  shift, and go to state 82
+    SEMICOLON  shift, and go to state 83
 
 
-State 61
+State 62
 
    16 compound_stmt: O_BRACE local-declarations statement-list C_BRACE •
 
     $default  reduce using rule 16 (compound_stmt)
 
 
-State 62
+State 63
 
    19 statement-list: statement statement-list •
 
     $default  reduce using rule 19 (statement-list)
 
 
-State 63
+State 64
 
    26 expression_stmt: expression SEMICOLON •
 
     $default  reduce using rule 26 (expression_stmt)
 
 
-State 64
+State 65
 
    32 expression: var ASSIGN • expression
 
-    O_PAREN  shift, and go to state 34
-    ID       shift, and go to state 35
-    NUM      shift, and go to state 36
+    O_PAREN  shift, and go to state 35
+    ID       shift, and go to state 36
+    NUM      shift, and go to state 37
 
-    expression           go to state 83
-    var                  go to state 48
-    simple_expression    go to state 49
-    additive_expression  go to state 50
-    term                 go to state 51
-    factor               go to state 52
-    call                 go to state 53
-
-
-State 65
-
-   43 additive_expression: additive_expression PLUS • term
-
-    O_PAREN  shift, and go to state 34
-    ID       shift, and go to state 35
-    NUM      shift, and go to state 36
-
-    var     go to state 84
-    term    go to state 85
-    factor  go to state 52
-    call    go to state 53
+    expression           go to state 84
+    var                  go to state 49
+    simple_expression    go to state 50
+    additive_expression  go to state 51
+    term                 go to state 52
+    factor               go to state 53
+    call                 go to state 54
 
 
 State 66
 
-   44 additive_expression: additive_expression MINUS • term
+   43 additive_expression: additive_expression PLUS • term
 
-    O_PAREN  shift, and go to state 34
-    ID       shift, and go to state 35
-    NUM      shift, and go to state 36
+    O_PAREN  shift, and go to state 35
+    ID       shift, and go to state 36
+    NUM      shift, and go to state 37
 
-    var     go to state 84
+    var     go to state 85
     term    go to state 86
-    factor  go to state 52
-    call    go to state 53
+    factor  go to state 53
+    call    go to state 54
 
 
 State 67
 
-   41 simple_expression: additive_expression NOT_EQ • additive_expression
+   44 additive_expression: additive_expression MINUS • term
 
-    O_PAREN  shift, and go to state 34
-    ID       shift, and go to state 35
-    NUM      shift, and go to state 36
+    O_PAREN  shift, and go to state 35
+    ID       shift, and go to state 36
+    NUM      shift, and go to state 37
 
-    var                  go to state 84
-    additive_expression  go to state 87
-    term                 go to state 51
-    factor               go to state 52
-    call                 go to state 53
+    var     go to state 85
+    term    go to state 87
+    factor  go to state 53
+    call    go to state 54
 
 
 State 68
 
-   36 simple_expression: additive_expression LESSER • additive_expression
+   41 simple_expression: additive_expression NOT_EQ • additive_expression
 
-    O_PAREN  shift, and go to state 34
-    ID       shift, and go to state 35
-    NUM      shift, and go to state 36
+    O_PAREN  shift, and go to state 35
+    ID       shift, and go to state 36
+    NUM      shift, and go to state 37
 
-    var                  go to state 84
+    var                  go to state 85
     additive_expression  go to state 88
-    term                 go to state 51
-    factor               go to state 52
-    call                 go to state 53
+    term                 go to state 52
+    factor               go to state 53
+    call                 go to state 54
 
 
 State 69
 
-   37 simple_expression: additive_expression GREATER • additive_expression
+   36 simple_expression: additive_expression LESSER • additive_expression
 
-    O_PAREN  shift, and go to state 34
-    ID       shift, and go to state 35
-    NUM      shift, and go to state 36
+    O_PAREN  shift, and go to state 35
+    ID       shift, and go to state 36
+    NUM      shift, and go to state 37
 
-    var                  go to state 84
+    var                  go to state 85
     additive_expression  go to state 89
-    term                 go to state 51
-    factor               go to state 52
-    call                 go to state 53
+    term                 go to state 52
+    factor               go to state 53
+    call                 go to state 54
 
 
 State 70
 
-   38 simple_expression: additive_expression LESSER_EQ • additive_expression
+   37 simple_expression: additive_expression GREATER • additive_expression
 
-    O_PAREN  shift, and go to state 34
-    ID       shift, and go to state 35
-    NUM      shift, and go to state 36
+    O_PAREN  shift, and go to state 35
+    ID       shift, and go to state 36
+    NUM      shift, and go to state 37
 
-    var                  go to state 84
+    var                  go to state 85
     additive_expression  go to state 90
-    term                 go to state 51
-    factor               go to state 52
-    call                 go to state 53
+    term                 go to state 52
+    factor               go to state 53
+    call                 go to state 54
 
 
 State 71
 
-   39 simple_expression: additive_expression GREATER_EQ • additive_expression
+   38 simple_expression: additive_expression LESSER_EQ • additive_expression
 
-    O_PAREN  shift, and go to state 34
-    ID       shift, and go to state 35
-    NUM      shift, and go to state 36
+    O_PAREN  shift, and go to state 35
+    ID       shift, and go to state 36
+    NUM      shift, and go to state 37
 
-    var                  go to state 84
+    var                  go to state 85
     additive_expression  go to state 91
-    term                 go to state 51
-    factor               go to state 52
-    call                 go to state 53
+    term                 go to state 52
+    factor               go to state 53
+    call                 go to state 54
 
 
 State 72
 
-   40 simple_expression: additive_expression EQ • additive_expression
+   39 simple_expression: additive_expression GREATER_EQ • additive_expression
 
-    O_PAREN  shift, and go to state 34
-    ID       shift, and go to state 35
-    NUM      shift, and go to state 36
+    O_PAREN  shift, and go to state 35
+    ID       shift, and go to state 36
+    NUM      shift, and go to state 37
 
-    var                  go to state 84
+    var                  go to state 85
     additive_expression  go to state 92
-    term                 go to state 51
-    factor               go to state 52
-    call                 go to state 53
+    term                 go to state 52
+    factor               go to state 53
+    call                 go to state 54
 
 
 State 73
 
-   47 term: term MULT • factor
+   40 simple_expression: additive_expression EQ • additive_expression
 
-    O_PAREN  shift, and go to state 34
-    ID       shift, and go to state 35
-    NUM      shift, and go to state 36
+    O_PAREN  shift, and go to state 35
+    ID       shift, and go to state 36
+    NUM      shift, and go to state 37
 
-    var     go to state 84
-    factor  go to state 93
-    call    go to state 53
+    var                  go to state 85
+    additive_expression  go to state 93
+    term                 go to state 52
+    factor               go to state 53
+    call                 go to state 54
 
 
 State 74
 
-   46 term: term DIV • factor
+   47 term: term MULT • factor
 
-    O_PAREN  shift, and go to state 34
-    ID       shift, and go to state 35
-    NUM      shift, and go to state 36
+    O_PAREN  shift, and go to state 35
+    ID       shift, and go to state 36
+    NUM      shift, and go to state 37
 
-    var     go to state 84
+    var     go to state 85
     factor  go to state 94
-    call    go to state 53
+    call    go to state 54
 
 
 State 75
+
+   46 term: term DIV • factor
+
+    O_PAREN  shift, and go to state 35
+    ID       shift, and go to state 36
+    NUM      shift, and go to state 37
+
+    var     go to state 85
+    factor  go to state 95
+    call    go to state 54
+
+
+State 76
 
    49 factor: O_PAREN expression C_PAREN •
 
     $default  reduce using rule 49 (factor)
 
 
-State 76
+State 77
 
    56 arg_list: expression • COMMA arg_list
    57         | expression •
 
-    COMMA  shift, and go to state 95
+    COMMA  shift, and go to state 96
 
     $default  reduce using rule 57 (arg_list)
 
 
-State 77
+State 78
 
    53 call: ID O_PAREN args • C_PAREN
 
-    C_PAREN  shift, and go to state 96
+    C_PAREN  shift, and go to state 97
 
 
-State 78
+State 79
 
    54 args: arg_list •
 
     $default  reduce using rule 54 (args)
 
 
-State 79
+State 80
 
    35 var: ID O_BRACE expression • C_BRACE
 
-    C_BRACE  shift, and go to state 97
-
-
-State 80
-
-   29 iteration_stmt: WHILE O_PAREN expression • C_PAREN statement
-
-    C_PAREN  shift, and go to state 98
+    C_BRACE  shift, and go to state 98
 
 
 State 81
 
-   27 selection_stmt: IF O_PAREN expression • C_PAREN statement
-   28               | IF O_PAREN expression • C_PAREN statement ELSE statement
+   29 iteration_stmt: WHILE O_PAREN expression • C_PAREN statement
 
     C_PAREN  shift, and go to state 99
 
 
 State 82
 
+   27 selection_stmt: IF O_PAREN expression • C_PAREN statement
+   28               | IF O_PAREN expression • C_PAREN statement ELSE statement
+
+    C_PAREN  shift, and go to state 100
+
+
+State 83
+
    31 return_stmt: RETURN expression SEMICOLON •
 
     $default  reduce using rule 31 (return_stmt)
 
 
-State 83
+State 84
 
    32 expression: var ASSIGN expression •
 
     $default  reduce using rule 32 (expression)
 
 
-State 84
+State 85
 
    50 factor: var •
 
     $default  reduce using rule 50 (factor)
 
 
-State 85
+State 86
 
    43 additive_expression: additive_expression PLUS term •
    46 term: term • DIV factor
    47     | term • MULT factor
 
-    MULT  shift, and go to state 73
-    DIV   shift, and go to state 74
+    MULT  shift, and go to state 74
+    DIV   shift, and go to state 75
 
     $default  reduce using rule 43 (additive_expression)
 
 
-State 86
+State 87
 
    44 additive_expression: additive_expression MINUS term •
    46 term: term • DIV factor
    47     | term • MULT factor
 
-    MULT  shift, and go to state 73
-    DIV   shift, and go to state 74
+    MULT  shift, and go to state 74
+    DIV   shift, and go to state 75
 
     $default  reduce using rule 44 (additive_expression)
 
 
-State 87
+State 88
 
    41 simple_expression: additive_expression NOT_EQ additive_expression •
    43 additive_expression: additive_expression • PLUS term
    44                    | additive_expression • MINUS term
 
-    PLUS   shift, and go to state 65
-    MINUS  shift, and go to state 66
+    PLUS   shift, and go to state 66
+    MINUS  shift, and go to state 67
 
     $default  reduce using rule 41 (simple_expression)
 
 
-State 88
+State 89
 
    36 simple_expression: additive_expression LESSER additive_expression •
    43 additive_expression: additive_expression • PLUS term
    44                    | additive_expression • MINUS term
 
-    PLUS   shift, and go to state 65
-    MINUS  shift, and go to state 66
+    PLUS   shift, and go to state 66
+    MINUS  shift, and go to state 67
 
     $default  reduce using rule 36 (simple_expression)
 
 
-State 89
+State 90
 
    37 simple_expression: additive_expression GREATER additive_expression •
    43 additive_expression: additive_expression • PLUS term
    44                    | additive_expression • MINUS term
 
-    PLUS   shift, and go to state 65
-    MINUS  shift, and go to state 66
+    PLUS   shift, and go to state 66
+    MINUS  shift, and go to state 67
 
     $default  reduce using rule 37 (simple_expression)
 
 
-State 90
+State 91
 
    38 simple_expression: additive_expression LESSER_EQ additive_expression •
    43 additive_expression: additive_expression • PLUS term
    44                    | additive_expression • MINUS term
 
-    PLUS   shift, and go to state 65
-    MINUS  shift, and go to state 66
+    PLUS   shift, and go to state 66
+    MINUS  shift, and go to state 67
 
     $default  reduce using rule 38 (simple_expression)
 
 
-State 91
+State 92
 
    39 simple_expression: additive_expression GREATER_EQ additive_expression •
    43 additive_expression: additive_expression • PLUS term
    44                    | additive_expression • MINUS term
 
-    PLUS   shift, and go to state 65
-    MINUS  shift, and go to state 66
+    PLUS   shift, and go to state 66
+    MINUS  shift, and go to state 67
 
     $default  reduce using rule 39 (simple_expression)
 
 
-State 92
+State 93
 
    40 simple_expression: additive_expression EQ additive_expression •
    43 additive_expression: additive_expression • PLUS term
    44                    | additive_expression • MINUS term
 
-    PLUS   shift, and go to state 65
-    MINUS  shift, and go to state 66
+    PLUS   shift, and go to state 66
+    MINUS  shift, and go to state 67
 
     $default  reduce using rule 40 (simple_expression)
 
 
-State 93
+State 94
 
    47 term: term MULT factor •
 
     $default  reduce using rule 47 (term)
 
 
-State 94
+State 95
 
    46 term: term DIV factor •
 
     $default  reduce using rule 46 (term)
 
 
-State 95
+State 96
 
    56 arg_list: expression COMMA • arg_list
 
-    O_PAREN  shift, and go to state 34
-    ID       shift, and go to state 35
-    NUM      shift, and go to state 36
+    O_PAREN  shift, and go to state 35
+    ID       shift, and go to state 36
+    NUM      shift, and go to state 37
 
-    expression           go to state 76
-    var                  go to state 48
-    simple_expression    go to state 49
-    additive_expression  go to state 50
-    term                 go to state 51
-    factor               go to state 52
-    call                 go to state 53
-    arg_list             go to state 100
+    expression           go to state 77
+    var                  go to state 49
+    simple_expression    go to state 50
+    additive_expression  go to state 51
+    term                 go to state 52
+    factor               go to state 53
+    call                 go to state 54
+    arg_list             go to state 101
 
 
-State 96
+State 97
 
    53 call: ID O_PAREN args C_PAREN •
 
     $default  reduce using rule 53 (call)
 
 
-State 97
+State 98
 
    35 var: ID O_BRACE expression C_BRACE •
 
     $default  reduce using rule 35 (var)
 
 
-State 98
+State 99
 
    29 iteration_stmt: WHILE O_PAREN expression C_PAREN • statement
 
-    O_PAREN  shift, and go to state 34
-    O_BRACE  shift, and go to state 24
-    ID       shift, and go to state 35
-    NUM      shift, and go to state 36
-    WHILE    shift, and go to state 37
-    IF       shift, and go to state 38
-    RETURN   shift, and go to state 39
+    O_PAREN  shift, and go to state 35
+    O_BRACE  shift, and go to state 25
+    ID       shift, and go to state 36
+    NUM      shift, and go to state 37
+    WHILE    shift, and go to state 38
+    IF       shift, and go to state 39
+    RETURN   shift, and go to state 40
 
-    compound_stmt        go to state 40
-    statement            go to state 101
-    expression_stmt      go to state 43
-    selection_stmt       go to state 44
-    iteration_stmt       go to state 45
-    return_stmt          go to state 46
-    expression           go to state 47
-    var                  go to state 48
-    simple_expression    go to state 49
-    additive_expression  go to state 50
-    term                 go to state 51
-    factor               go to state 52
-    call                 go to state 53
+    compound_stmt        go to state 41
+    statement            go to state 102
+    expression_stmt      go to state 44
+    selection_stmt       go to state 45
+    iteration_stmt       go to state 46
+    return_stmt          go to state 47
+    expression           go to state 48
+    var                  go to state 49
+    simple_expression    go to state 50
+    additive_expression  go to state 51
+    term                 go to state 52
+    factor               go to state 53
+    call                 go to state 54
 
 
-State 99
+State 100
 
    27 selection_stmt: IF O_PAREN expression C_PAREN • statement
    28               | IF O_PAREN expression C_PAREN • statement ELSE statement
 
-    O_PAREN  shift, and go to state 34
-    O_BRACE  shift, and go to state 24
-    ID       shift, and go to state 35
-    NUM      shift, and go to state 36
-    WHILE    shift, and go to state 37
-    IF       shift, and go to state 38
-    RETURN   shift, and go to state 39
+    O_PAREN  shift, and go to state 35
+    O_BRACE  shift, and go to state 25
+    ID       shift, and go to state 36
+    NUM      shift, and go to state 37
+    WHILE    shift, and go to state 38
+    IF       shift, and go to state 39
+    RETURN   shift, and go to state 40
 
-    compound_stmt        go to state 40
-    statement            go to state 102
-    expression_stmt      go to state 43
-    selection_stmt       go to state 44
-    iteration_stmt       go to state 45
-    return_stmt          go to state 46
-    expression           go to state 47
-    var                  go to state 48
-    simple_expression    go to state 49
-    additive_expression  go to state 50
-    term                 go to state 51
-    factor               go to state 52
-    call                 go to state 53
+    compound_stmt        go to state 41
+    statement            go to state 103
+    expression_stmt      go to state 44
+    selection_stmt       go to state 45
+    iteration_stmt       go to state 46
+    return_stmt          go to state 47
+    expression           go to state 48
+    var                  go to state 49
+    simple_expression    go to state 50
+    additive_expression  go to state 51
+    term                 go to state 52
+    factor               go to state 53
+    call                 go to state 54
 
 
-State 100
+State 101
 
    56 arg_list: expression COMMA arg_list •
 
     $default  reduce using rule 56 (arg_list)
 
 
-State 101
+State 102
 
    29 iteration_stmt: WHILE O_PAREN expression C_PAREN statement •
 
     $default  reduce using rule 29 (iteration_stmt)
 
 
-State 102
+State 103
 
    27 selection_stmt: IF O_PAREN expression C_PAREN statement •
    28               | IF O_PAREN expression C_PAREN statement • ELSE statement
 
-    ELSE  shift, and go to state 103
+    ELSE  shift, and go to state 104
 
     ELSE      [reduce using rule 27 (selection_stmt)]
     $default  reduce using rule 27 (selection_stmt)
 
 
-State 103
+State 104
 
    28 selection_stmt: IF O_PAREN expression C_PAREN statement ELSE • statement
 
-    O_PAREN  shift, and go to state 34
-    O_BRACE  shift, and go to state 24
-    ID       shift, and go to state 35
-    NUM      shift, and go to state 36
-    WHILE    shift, and go to state 37
-    IF       shift, and go to state 38
-    RETURN   shift, and go to state 39
+    O_PAREN  shift, and go to state 35
+    O_BRACE  shift, and go to state 25
+    ID       shift, and go to state 36
+    NUM      shift, and go to state 37
+    WHILE    shift, and go to state 38
+    IF       shift, and go to state 39
+    RETURN   shift, and go to state 40
 
-    compound_stmt        go to state 40
-    statement            go to state 104
-    expression_stmt      go to state 43
-    selection_stmt       go to state 44
-    iteration_stmt       go to state 45
-    return_stmt          go to state 46
-    expression           go to state 47
-    var                  go to state 48
-    simple_expression    go to state 49
-    additive_expression  go to state 50
-    term                 go to state 51
-    factor               go to state 52
-    call                 go to state 53
+    compound_stmt        go to state 41
+    statement            go to state 105
+    expression_stmt      go to state 44
+    selection_stmt       go to state 45
+    iteration_stmt       go to state 46
+    return_stmt          go to state 47
+    expression           go to state 48
+    var                  go to state 49
+    simple_expression    go to state 50
+    additive_expression  go to state 51
+    term                 go to state 52
+    factor               go to state 53
+    call                 go to state 54
 
 
-State 104
+State 105
 
    28 selection_stmt: IF O_PAREN expression C_PAREN statement ELSE statement •
 

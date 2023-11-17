@@ -49,6 +49,7 @@
 
 DIGIT   [0-9]
 LETTER [a-z|A-Z]
+%option yylineno
 
 %%
 "+"     {return PLUS;}

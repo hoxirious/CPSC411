@@ -86,6 +86,7 @@ struct decl *createDecl(declKind kind, char *id, int *NUM, struct type *type,
 
 typedef enum {
   SIMPLE_PARAM,
+  VOID_PARAM,
   ARRAY_PARAM,
 } paramKind;
 
@@ -174,7 +175,7 @@ void printExpr(struct expr *expr) {
     printf("Multiplication: {");
     break;
   case NUM_EXPR:
-    printf("Number: { %d ", expr->value);
+    printf("Number: { %d } ", expr->value);
     break;
   case LESSER_EXPR:
     printf("Lesser: {");
@@ -192,7 +193,7 @@ void printExpr(struct expr *expr) {
     printf("Not Equal: {");
     break;
   case EQ_EXPR:
-    printf("Equal: {");
+    printf("Equal: ");
     break;
   case ASSIGN_EXPR:
     printf("Assignment: {");
@@ -204,7 +205,7 @@ void printExpr(struct expr *expr) {
     printf("Argument: {");
     break;
   case VAR_EXPR:
-    printf("Variable: { ID: %s, ", expr->id);
+    printf("Variable: { ID: %s } ", expr->id);
     break;
   default:
     break;
@@ -213,13 +214,17 @@ void printExpr(struct expr *expr) {
   if (expr->left) {
     printf("left: {");
     printExpr(expr->left);
+    printf("} ");
   }
   if (expr->right) {
     printf("right: {");
     printExpr(expr->right);
+    printf("} ");
   }
 
-  printf("}} ");
+  if (expr->exprType != NUM_EXPR && expr->exprType != VAR_EXPR){
+      printf("} ");
+  }
 }
 
 void printArg(struct arg_list *arg) {
@@ -250,12 +255,12 @@ void printParam(struct param *param) {
     return;
   }
 
-  char *typeString = getType(param->type);
-
   if (param->kind == ARRAY_PARAM)
-    printf("PARAM_ARRAY: { ID: %s, Type: %s", param->id, typeString);
-  else
-    printf("PARAM: { ID: %s, Type: %s", param->id, typeString);
+    printf("PARAM_ARRAY: { ID: %s, Type: %s", param->id, getType(param->type));
+  else if (param->kind == VOID_PARAM) {
+    printf("\t{PARAM_VOID");
+  } else
+    printf("\tPARAM: { ID: %s, Type: %s", param->id, getType(param->type));
 
   printf("}\n");
   printParam(param->next);
@@ -265,46 +270,43 @@ void printStmt(struct stmt *stmt) {
   if (!stmt) {
     return;
   }
+  printf("\n");
 
   switch (stmt->kind) {
   case EXPR_STMT:
-    printf("EXPR_STMT: \n{");
+    printf("EXPR_STMT: \n\t");
     printExpr(stmt->expr);
     break;
   case SELECT_STMT:
-    printf("SELECT_STMT: \n{ IF: ");
+    printf("SELECT_STMT: \n\tIF: ");
     printExpr(stmt->expr);
-    printf("\nTHEN: ");
+    printf("\n\tTHEN: ");
     printStmt(stmt->body);
-    printf("ELSE: ");
+    printf("\n\tELSE: ");
     printStmt(stmt->else_body);
     break;
   case RETURN_STMT:
-    printf("RETURN_STMT: \n{");
+    printf("RETURN_STMT: \n\t");
     printExpr(stmt->expr);
     break;
   case ITER_STMT:
-    printf("ITER_STMT: \n{ WHILE: ");
+    printf("ITER_STMT: \n\tWHILE: ");
     printExpr(stmt->expr);
-    printf("BODY: ");
+    printf("\n\tBODY: ");
     printStmt(stmt->body);
     break;
   case COMPOUND_STMT: {
-    printf("COMPOUND_STMT: \n{");
     struct decl *tmp = stmt->decl;
-    if (tmp)
-      printf("LOCAL_DECL: \n{");
+    printf("LOCAL_DECL: \n");
     while (tmp) {
-      printf("ID: %s, Type: %s\n", tmp->id, getType(tmp->type));
+      printf("\tID: %s, Type: %s\n", tmp->id, getType(tmp->type));
       tmp = tmp->next;
     }
-    printf("}}");
     break;
   }
   default:
     break;
   }
-  printf("}\n");
   printStmt(stmt->next);
 }
 void printDecl(struct decl *decl) {
@@ -318,13 +320,15 @@ void printDecl(struct decl *decl) {
     printf("DECLARATION: { ID: %s, Type: %s, Size: %d", decl->id, typeString,
            *(decl->NUM));
   else if (decl->kind == FUNCTION_DECL) {
-    printf("DECLARATION: { ID: %s, Type: %s, PARAMS: \n{", decl->id,
+    printf("DECLARATION: { ID: %s, Type: %s, PARAMS: \n", decl->id,
            typeString);
-    printParam(decl->param);
+    if (decl->param) {
+      printParam(decl->param);
+    }
     printStmt(decl->compound_stmt);
   } else
     printf("DECLARATION: { ID: %s, Type: %s", decl->id, typeString);
 
-  printf("}\n");
+  printf("\n}\n\n");
   printDecl(decl->next);
 }
