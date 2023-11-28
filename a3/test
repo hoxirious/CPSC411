@@ -1,5 +1,5 @@
 int gcd (int u, int v)
 { int x; int y;
-  gcd();
   sdc();
+  gcd(x,k);
 }

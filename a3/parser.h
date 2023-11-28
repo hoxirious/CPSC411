@@ -66,24 +66,26 @@ extern int yydebug;
     COMMA = 267,                   /* COMMA  */
     NOT_EQ = 268,                  /* NOT_EQ  */
     ASSIGN = 269,                  /* ASSIGN  */
-    O_BRACE = 270,                 /* O_BRACE  */
-    C_BRACE = 271,                 /* C_BRACE  */
-    O_COMMENT = 272,               /* O_COMMENT  */
-    C_COMMENT = 273,               /* C_COMMENT  */
-    COLON = 274,                   /* COLON  */
-    INT = 275,                     /* INT  */
-    VOID = 276,                    /* VOID  */
-    LESSER = 277,                  /* LESSER  */
-    GREATER = 278,                 /* GREATER  */
-    LESSER_EQ = 279,               /* LESSER_EQ  */
-    GREATER_EQ = 280,              /* GREATER_EQ  */
-    EQ = 281,                      /* EQ  */
-    ID = 282,                      /* ID  */
-    NUM = 283,                     /* NUM  */
-    WHILE = 284,                   /* WHILE  */
-    IF = 285,                      /* IF  */
-    ELSE = 286,                    /* ELSE  */
-    RETURN = 287                   /* RETURN  */
+    O_BRACKET = 270,               /* O_BRACKET  */
+    C_BRACKET = 271,               /* C_BRACKET  */
+    O_BRACE = 272,                 /* O_BRACE  */
+    C_BRACE = 273,                 /* C_BRACE  */
+    O_COMMENT = 274,               /* O_COMMENT  */
+    C_COMMENT = 275,               /* C_COMMENT  */
+    COLON = 276,                   /* COLON  */
+    INT = 277,                     /* INT  */
+    VOID = 278,                    /* VOID  */
+    LESSER = 279,                  /* LESSER  */
+    GREATER = 280,                 /* GREATER  */
+    LESSER_EQ = 281,               /* LESSER_EQ  */
+    GREATER_EQ = 282,              /* GREATER_EQ  */
+    EQ = 283,                      /* EQ  */
+    ID = 284,                      /* ID  */
+    NUM = 285,                     /* NUM  */
+    WHILE = 286,                   /* WHILE  */
+    IF = 287,                      /* IF  */
+    ELSE = 288,                    /* ELSE  */
+    RETURN = 289                   /* RETURN  */
   };
   typedef enum yytokentype yytoken_kind_t;
 #endif
@@ -103,7 +105,7 @@ union YYSTYPE
     char *id;
     int num;
 
-#line 107 "parser.h"
+#line 109 "parser.h"
 
 };
 typedef union YYSTYPE YYSTYPE;

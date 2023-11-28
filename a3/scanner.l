@@ -65,6 +65,8 @@ LETTER [a-z|A-Z]
 "=="    {return EQ;}
 "{"     {return O_BRACE;}
 "}"     {return C_BRACE;}
+"["     {return O_BRACKET;}
+"]"     {return C_BRACKET;}
 "/*"    {return O_COMMENT;}
 "*/"    {return C_COMMENT;}
 ":"     {return COLON;}

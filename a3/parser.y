@@ -72,7 +72,7 @@
 %}
 
 %define parse.error verbose
-%token PLUS ARRAY MULT MINUS DIV O_PAREN ERROR C_PAREN SEMICOLON COMMA NOT_EQ ASSIGN O_BRACE C_BRACE O_COMMENT C_COMMENT COLON INT VOID LESSER GREATER LESSER_EQ GREATER_EQ EQ ID NUM WHILE IF ELSE RETURN
+%token PLUS ARRAY MULT MINUS DIV O_PAREN ERROR C_PAREN SEMICOLON COMMA NOT_EQ ASSIGN O_BRACKET C_BRACKET O_BRACE C_BRACE O_COMMENT C_COMMENT COLON INT VOID LESSER GREATER LESSER_EQ GREATER_EQ EQ ID NUM WHILE IF ELSE RETURN
 %locations
 %union {
     struct decl *decl;
@@ -119,8 +119,7 @@ declaration: var-declaration {$$ = $1;} | fun-declaration {$$ = $1;}
 var-declaration: type ID SEMICOLON {
             $$ = createDecl(SIMPLE_DECL, $2, 0, $1, 0, 0, 0, yylineno);
         }
-            | type ID O_BRACE NUM C_BRACE SEMICOLON {$$ = createDecl(ARRAY_DECL, $2, $4, $1, 0, 0, 0, yylineno);}
-
+            | type ID O_BRACKET NUM C_BRACKET SEMICOLON {$$ = createDecl(ARRAY_DECL, $2, $4, $1, 0, 0, 0, yylineno);}
 type: INT {$$ = createType(INT_TYPE, 0, 0);} | VOID {$$ = createType(VOID_TYPE, 0, 0);}
 
 fun-declaration: type ID O_PAREN param-list C_PAREN compound_stmt
@@ -133,7 +132,7 @@ param-list: param COMMA param-list { $$ = $1; $1->next=$3;}
             | VOID {$$ = createParam(VOID_PARAM,0,0,0, yylineno);}
 
 param: type ID {$$ = createParam(SIMPLE_PARAM,$1, $2, 0,yylineno);}
-     | type ID O_BRACE C_BRACE {$$ = createParam(ARRAY_PARAM, $1, $2, 0, yylineno);}
+     | type ID O_BRACKET C_BRACKET {$$ = createParam(ARRAY_PARAM, $1, $2, 0, yylineno);}
 
 compound_stmt: O_BRACE local-declarations statement-list C_BRACE {
 $$ = createStmt(COMPOUND_STMT, $2,0,0,0,$3, yylineno);

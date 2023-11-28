@@ -13,10 +13,18 @@ typedef enum {
   SYMBOL_PARAM,
 } symbol_t;
 
+typedef enum {
+  SYMBOL_INT,
+  SYMBOL_VOID,
+  SYMBOL_ARRAY,
+  SYMBOL_FUNCTION,
+  SYMBOL_ID,
+} symbol_type;
+
 struct Symbol {
   const char *name;
   symbol_t kind;
-  struct type *type;
+  symbol_type type;
   int which;
 };
 
@@ -68,7 +76,7 @@ void expr_resolve(struct SymbolTableStack *st, struct expr *e);
 void param_list_resolve(struct SymbolTableStack *st, struct param *p);
 
 // Function to create a new symbol
-struct Symbol *symbol_create(const char *name, symbol_t kind, struct type *type,
+struct Symbol *symbol_create(const char *name, symbol_t kind, symbol_type type,
                              int which);
 
 // Function to create a new symbol table
@@ -461,7 +469,7 @@ unsigned int hashFunction(const char *id) {
   return hash % HASH_TABLE_SIZE;
 }
 
-struct Symbol *symbol_create(const char *name, symbol_t kind, struct type *type,
+struct Symbol *symbol_create(const char *name, symbol_t kind, symbol_type type,
                              int which) {
   struct Symbol *symbol = malloc(sizeof(struct Symbol));
   symbol->name = strdup(name); // Make a copy of the name
@@ -573,7 +581,7 @@ void decl_resolve(struct SymbolTableStack *st, struct decl *d) {
   // todo: define which
 
   if (d->kind == FUNCTION_DECL) {
-    d->symbol = symbol_create(d->id, kind, d->type, 0);
+    d->symbol = symbol_create(d->id, kind, SYMBOL_FUNCTION, 0);
     struct Symbol *sym = scope_lookup_current(st, d->id);
     if (sym) {
       printf("Error: %s is already defined\n", d->id);
@@ -582,18 +590,29 @@ void decl_resolve(struct SymbolTableStack *st, struct decl *d) {
       scope_bind(st, d->id, d->symbol);
     }
 
+    // Start Param Scope
     scope_enter(st);
     param_list_resolve(st, d->param);
     scope_exit(st);
+    // End Param Scope
+    // Start Compound Stmt Scope
     scope_enter(st);
     stmt_resolve(st, d->compound_stmt);
     scope_exit(st);
-  }
-  // else if(d->kind == ARRAY_DECL){
-  //     expr_resolve(d->expr);
-  // }
-  else if (d->kind == SIMPLE_DECL) {
-    d->symbol = symbol_create(d->id, kind, d->type, 0);
+    // End Compound Stmt Scope
+  } else if (d->kind == ARRAY_DECL) {
+    // TODO: save array size
+    d->symbol = symbol_create(d->id, kind, SYMBOL_ARRAY, 0);
+    struct Symbol *sym = lookup_helper(st, d->id);
+    if (sym) {
+      printf("Error: %s is already defined\n", d->id);
+    } else {
+      printf("Binding %s to symbol table\n", d->id);
+      scope_bind(st, d->id, d->symbol);
+    }
+  } else if (d->kind == SIMPLE_DECL) {
+    symbol_type type = d->type->kind == INT_TYPE ? SYMBOL_INT : SYMBOL_VOID;
+    d->symbol = symbol_create(d->id, kind, type, 0);
     struct Symbol *sym = lookup_helper(st, d->id);
     if (sym) {
       printf("Error: %s is already defined\n", d->id);
@@ -614,11 +633,11 @@ void param_list_resolve(struct SymbolTableStack *st, struct param *p) {
   }
   if (p->kind == ARRAY_PARAM) {
 
-    p->symbol = symbol_create(p->id, SYMBOL_PARAM, p->type, 0);
+    p->symbol = symbol_create(p->id, SYMBOL_PARAM, SYMBOL_ARRAY, 0);
     printf("Resolve array param\n");
   } else if (p->kind == SIMPLE_PARAM) {
     printf("Resolve simple param\n");
-    p->symbol = symbol_create(p->id, SYMBOL_PARAM, p->type, 0);
+    p->symbol = symbol_create(p->id, SYMBOL_PARAM, SYMBOL_INT, 0);
     struct Symbol *sym = scope_lookup_current(st, p->id);
     if (sym) {
       printf("Error: %s is already defined\n", p->id);
@@ -627,7 +646,9 @@ void param_list_resolve(struct SymbolTableStack *st, struct param *p) {
       scope_bind(st, p->id, p->symbol);
     }
   } else if (p->kind == VOID_PARAM) {
+    p->symbol = symbol_create(p->id, SYMBOL_PARAM, SYMBOL_VOID, 0);
     printf("Resolve void param\n");
+    return;
   }
   param_list_resolve(st, p->next);
 }
@@ -646,6 +667,7 @@ void stmt_resolve(struct SymbolTableStack *st, struct stmt *s) {
     stmt_resolve(st, s->body);
     stmt_resolve(st, s->else_body);
   } else if (s->kind == RETURN_STMT) {
+    // TODO: check if expr is of type function
     printf("Resolving return stmt\n");
     expr_resolve(st, s->expr);
   } else if (s->kind == ITER_STMT) {
@@ -653,16 +675,23 @@ void stmt_resolve(struct SymbolTableStack *st, struct stmt *s) {
     expr_resolve(st, s->expr);
     stmt_resolve(st, s->body);
   } else if (s->kind == COMPOUND_STMT) {
-    decl_resolve(st, s->decl);
+    printf("Resolving compound stmt\n");
+    struct decl *tmp = s->decl;
+    while (tmp) {
+      decl_resolve(st, tmp);
+      tmp = tmp->next;
+    }
     stmt_resolve(st, s->next);
   }
+
+  if (s->kind != COMPOUND_STMT)
+    stmt_resolve(st, s->next);
 }
 
 void expr_resolve(struct SymbolTableStack *st, struct expr *e) {
   if (!e) {
     return;
   }
-  e->symbol = symbol_create(e->id, SYMBOL_LOCAL, NULL, 0);
   if (e->exprType == VAR_EXPR) {
     printf("Resolving var expr\n");
     struct Symbol *sym = lookup_helper(st, e->id);
@@ -680,26 +709,28 @@ void expr_resolve(struct SymbolTableStack *st, struct expr *e) {
       printf("Error: Symbol %s not found\n", e->id);
     }
   } else if (e->exprType == ARG_EXPR) {
-    // open scope here
     printf("Resolving arg expr\n");
-    scope_enter(st);
     struct expr *tmp = e;
     while (tmp->right) {
-      struct Symbol *sym = scope_lookup_current(st, tmp->id);
-      tmp->symbol = symbol_create(tmp->id, SYMBOL_PARAM, NULL, 0);
-      if (sym) {
-        printf("Error: %s is already defined\n", tmp->id);
+      struct Symbol *sym = scope_lookup(st, tmp->id);
+      if (!sym) {
+        printf("Error: Symbol %s not found\n", tmp->id);
         break;
       } else {
-        printf("Binding %s to symbol table\n", tmp->id);
-        scope_bind(st, tmp->id, tmp->symbol);
+        printf("Found symbol %s\n", sym->name);
         tmp = tmp->right;
       }
     }
-    scope_exit(st);
+  }
+
+  if(e->left){
+    expr_resolve(st, e->left);
+  }
+
+  if(e->right){
+    expr_resolve(st, e->right);
   }
 }
-
 struct Symbol *lookup_helper(struct SymbolTableStack *st, char *id) {
   struct Symbol *local_symbol = scope_lookup_current(st, id);
   if (!local_symbol) {
@@ -713,19 +744,3 @@ struct Symbol *lookup_helper(struct SymbolTableStack *st, char *id) {
     return local_symbol;
   }
 }
-
-// void decl_resolve(struct decl *d) {
-//   if (!d)
-//     return;
-//   symbol_t kind = scope_level() > 1 ? SYMBOL_LOCAL : SYMBOL_GLOBAL;
-//   d->symbol = symbol_create(kind, d->type, d->name);
-//   expr_resolve(d->value);
-//   scope_bind(d->name, d->symbol);
-//   if (d->code) {
-//     scope_enter();
-//     param_list_resolve(d->type->params);
-//     stmt_resolve(d->code);
-//     scope_exit();
-//   }
-//   decl_resolve(d->next);
-// }
