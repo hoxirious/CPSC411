@@ -65,7 +65,7 @@ Grammar
    33           | simple_expression
 
    34 var: ID
-   35    | ID O_BRACE expression C_BRACE
+   35    | ID O_BRACKET expression C_BRACKET
 
    36 simple_expression: additive_expression LESSER additive_expression
    37                  | additive_expression GREATER additive_expression
@@ -113,10 +113,10 @@ Terminals, with rules where they appear
     COMMA (267) 11 56
     NOT_EQ (268) 41
     ASSIGN (269) 32
-    O_BRACKET (270) 7 15
-    C_BRACKET (271) 7 15
-    O_BRACE (272) 16 35
-    C_BRACE (273) 16 35
+    O_BRACKET (270) 7 15 35
+    C_BRACKET (271) 7 15 35
+    O_BRACE (272) 16
+    C_BRACE (273) 16
     O_COMMENT (274)
     C_COMMENT (275)
     COLON (276)
@@ -566,11 +566,11 @@ State 35
 State 36
 
    34 var: ID •
-   35    | ID • O_BRACE expression C_BRACE
+   35    | ID • O_BRACKET expression C_BRACKET
    53 call: ID • O_PAREN args C_PAREN
 
-    O_PAREN  shift, and go to state 56
-    O_BRACE  shift, and go to state 57
+    O_PAREN    shift, and go to state 56
+    O_BRACKET  shift, and go to state 57
 
     $default  reduce using rule 34 (var)
 
@@ -792,7 +792,7 @@ State 56
 
 State 57
 
-   35 var: ID O_BRACE • expression C_BRACE
+   35 var: ID O_BRACKET • expression C_BRACKET
 
     O_PAREN  shift, and go to state 35
     ID       shift, and go to state 36
@@ -1071,9 +1071,9 @@ State 79
 
 State 80
 
-   35 var: ID O_BRACE expression • C_BRACE
+   35 var: ID O_BRACKET expression • C_BRACKET
 
-    C_BRACE  shift, and go to state 98
+    C_BRACKET  shift, and go to state 98
 
 
 State 81
@@ -1249,7 +1249,7 @@ State 97
 
 State 98
 
-   35 var: ID O_BRACE expression C_BRACE •
+   35 var: ID O_BRACKET expression C_BRACKET •
 
     $default  reduce using rule 35 (var)
 

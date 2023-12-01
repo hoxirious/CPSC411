@@ -1,5 +1,5 @@
-int gcd (int u, int v)
-{ int x; int y;
-  sdc();
-  gcd(x,k);
+void foo ( void ) { }
+void main ( void ) {
+int foo;
+foo = 0;
 }

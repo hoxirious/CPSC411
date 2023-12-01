@@ -1,7 +1,19 @@
 - Write Lexical Analysis
 - Semantic Parsing
+## Tpe checking
+- [x] func vs int
+- [x] call type
+- [x] array declare type mismatch
+- [x] argrument type mismatch
+- [x] return type mismatch: int & void
+## Name resolution
+- [x] redeclare in different scope should be fine.
+- [x] parameter in same scope as below block but no redeclare
+- [x] main function declaration not in last
+- [ ] error line
 
-
+## Parser
+- [x] var array
 
 
 Its because you're missing the declaration %type <...> expression in the first part of your grammar, where ... is some type declared in your %union statement. Without this, you can't access $$ in any expression action. Also, if you set $$ in ANY action for a non-terminal, you need to set it in all actions for that non-terminal.

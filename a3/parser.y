@@ -104,7 +104,6 @@
 %%
 // new grammar
 program: declaration-list    {
-       printf("Program start\n");
        parser_result = $1;
        }
 
@@ -120,11 +119,13 @@ var-declaration: type ID SEMICOLON {
             $$ = createDecl(SIMPLE_DECL, $2, 0, $1, 0, 0, 0, yylineno);
         }
             | type ID O_BRACKET NUM C_BRACKET SEMICOLON {$$ = createDecl(ARRAY_DECL, $2, $4, $1, 0, 0, 0, yylineno);}
+
 type: INT {$$ = createType(INT_TYPE, 0, 0);} | VOID {$$ = createType(VOID_TYPE, 0, 0);}
 
 fun-declaration: type ID O_PAREN param-list C_PAREN compound_stmt
 {
     $$ = createDecl(FUNCTION_DECL, $2, 0, $1, $4, $6, 0, yylineno);
+    $6->parent = $$;
 }
 
 param-list: param COMMA param-list { $$ = $1; $1->next=$3;}
@@ -142,7 +143,9 @@ local-declarations: var-declaration local-declarations {$$ = $1; $1->next=$2;} |
 
 statement-list: statement statement-list {$$ = $1; $1->next=$2;} | {$$ = 0;}
 
-statement: expression_stmt {$$ = $1;} | compound_stmt {$$ = $1;} | selection_stmt {$$ = $1;} | iteration_stmt {$$ = $1;} | return_stmt {$$ = $1;}
+statement: expression_stmt {$$ = $1;} | compound_stmt {$$ = $1;}
+         | selection_stmt {$$ = $1;} | iteration_stmt {$$ = $1;} |
+         return_stmt {$$ = $1;}
 
 expression_stmt: expression SEMICOLON { $$ = createStmt(EXPR_STMT, 0, $1, 0,0,0,yylineno);}
 
@@ -160,7 +163,8 @@ return_stmt: RETURN SEMICOLON {$$ = createStmt(RETURN_STMT,0,0,0,0,0, yylineno);
 expression: var ASSIGN expression {
           $$ = createExpr(ASSIGN_EXPR, $1, $3, 0, 0, yylineno);} | simple_expression {$$ = $1;}
 
-var: ID {$$ = createExpr(VAR_EXPR, 0, 0,0, $1, yylineno);} | ID O_BRACE expression C_BRACE {$$ = createExpr(VAR_EXPR, 0,$3,0, $1, yylineno);}
+var: ID {$$ = createExpr(VAR_EXPR, 0, 0,0, $1, yylineno);}
+   | ID O_BRACKET expression C_BRACKET {$$ = createExpr(VAR_EXPR, 0,$3,0, $1, yylineno);}
 
 simple_expression: additive_expression LESSER  additive_expression {$$ = createExpr(LESSER_EXPR, $1, $3, 0, 0, yylineno);}
                  | additive_expression GREATER additive_expression {$$ = createExpr(GREATER_EXPR, $1, $3,0, 0, yylineno);}
@@ -209,11 +213,10 @@ int main(int argc, char **argv){
 
 
     if(result == 0){
+        printDecl(parser_result);
         scope_enter(&table_stack);
         decl_resolve(&table_stack, parser_result);
         scope_exit(&table_stack);
-        //printDecl(parser_result);
-        printf("\nparsing successful");
     }else {
         result = yyerror("parsing failed");
     }

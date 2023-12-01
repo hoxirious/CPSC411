@@ -60,7 +60,7 @@ LETTER [a-z|A-Z]
 ")"     {return C_PAREN;}
 ";"     {return SEMICOLON;}
 ","     {return COMMA;}
-"|="    {return NOT_EQ;}
+"!="    {return NOT_EQ;}
 "="     {return ASSIGN;}
 "=="    {return EQ;}
 "{"     {return O_BRACE;}

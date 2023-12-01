@@ -19,47 +19,25 @@
 ### For executing the parser, run:
 `gcc parser.c -o parser`
 
+### ALTERNATIVE, execute make file to run all above commands:
+`make clean && make`
+
 ### For testing the parser, run:
-`./parser test`
+`./parser tests/<test_name>`
 
 
-## Explain the test case
-### In scope
-The submission must cover all the rules listed in the C- grammar that is defined in Assignment 1 documentation.
-### Out of scope:
-- I believe there are two syntaxs that are not carried over from the grammar to the implementation. They are ARRAY and COMMENT.
-    - ARRAY requires square-bracket but C- does not have such token.
-    - COMMENT is opt-out (as I recall)
-- But these are required, I would be more than happy to work on it in the next assignment.
-### Coverage
-The `test` file consists two function declaration:
-1. gcd
-- This test case covers:
-   - int type
-   - function declaration
-   - parameter list
-   - selection statement
-   - return statement
-   - addops & relop
-   - call with arguments
+## Test cases
+1. test1 - Standard test from previous assignment
 
-2. main
-- This test case covers:
-    - void type
-    - function declaration
-    - void parameter
-    - local declaration
-    - assign a call
-    - iterative call
-
-## References
-During the research and implementation, I have refered to some sources
-- (1) https://www.gnu.org/software/bison/manual/bison.html#Language-and-Grammar
-- (2) https://gnuu.org/2009/09/18/writing-your-own-toy-compiler/
-- (3) https://keleshev.com/abstract-syntax-tree-an-example-in-c/
-- (4) https://clang.llvm.org/doxygen/classclang_1_1Stmt.html
-- (5) Introduction to Compilers and Language Design, Prof. Douglas Thain, Chapter 5 & 6
-
-
-
-
+- Below test cases are referenced from Assignment 3 documentation
+2. test2 - Declaration before use
+3. test3 - Redeclaration in same scope
+4. test4 - Parameter Scope Redeclaration
+5. test5 - Main Function Error
+6. test6 - Type Checking Expressions
+7. test7 - Incorrect use of function call syntax
+8. test8 - Incorrect use of array index syntax
+9. test9 - Incorrect function call parameters
+10. test10 - Return with expression in void function
+11. test11 - Empty return in int function
+12. test12 - Comparision test

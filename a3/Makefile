@@ -9,7 +9,7 @@ parser.c: parser.y
 	bison -dvo parser.c parser.y
 
 run: parser
-	./parser test
+	./parser tests/test1
 
 clean:
 	rm -f parser parser.c parser.h
